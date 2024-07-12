@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# desktop-video-registrar
+/tmp
+/desktop-video-registrar
