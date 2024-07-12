@@ -30,8 +30,9 @@ Check the video from webcam: `gst-launch-1.0 v4l2src ! decodebin ! videoconvert 
 - `gst-inspect-1.0 video4linux2` - Information about plugin
 - `v4l2-ctl --list-devices` - list devices
 - `ffmpeg -f v4l2 -list_formats all -i /dev/video0` - List device capabilities
-- `gst-launch-1.0 -v v4l2src device=/dev/video0 num-buffers=20000 ! 'video/x-raw,width=640,height=480,framerate=30/1,format=YUY2' ! filesink location=1.raw` - write raw data to file from web camara
-- `ffmpeg -f rawvideo -pix_fmt yuyv422 -video_size 640x480 -r 30 -i 1.raw -vcodec h264 -pix_fmt yuv420p output.mp4` - encode raw data to mp4 (oputput pixel format better for vlc)
+- `gst-launch-1.0 -v v4l2src device=/dev/video0 num-buffers=100 ! 'video/x-raw,width=640,height=480,framerate=30/1,format=YUY2' ! filesink location=test.raw` - write raw data to file from web camara
+- `ffmpeg -f rawvideo -pix_fmt yuyv422 -video_size 640x480 -r 30 -i test.raw -vcodec h264 -pix_fmt yuv420p test.mp4` - encode raw data to mp4 (oputput pixel format better for vlc)
+- `v4l2-ctl -d /dev/video0 --set-fmt-video=width=1280,height=800,pixelformat=UYVY --stream-mmap --stream-count=121` - looking fps from webcam
 
 ## helpful links
 
@@ -40,3 +41,5 @@ Check the video from webcam: `gst-launch-1.0 v4l2src ! decodebin ! videoconvert 
 - https://trac.ffmpeg.org/wiki/Capture/Webcam
 - https://stackoverflow.com/questions/66854985/gstreamer-pipeline-saves-my-camera-stream-to-a-file-but-i-need-a-pipeline-to-st
 - https://htrd.su/blog/2020/02/11/gstreamer-cant-link-videoconvert-with-appsink-using-caps/
+- https://gstreamer.freedesktop.org/documentation/video/video-format.html?gi-language=c
+- https://gstreamer.freedesktop.org/documentation/x264/index.html?gi-language=c
