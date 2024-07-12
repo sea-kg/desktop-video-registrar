@@ -34,6 +34,18 @@ Check the video from webcam: `gst-launch-1.0 v4l2src ! decodebin ! videoconvert 
 - `ffmpeg -f rawvideo -pix_fmt yuyv422 -video_size 640x480 -r 30 -i test.raw -vcodec h264 -pix_fmt yuv420p test.mp4` - encode raw data to mp4 (oputput pixel format better for vlc)
 - `v4l2-ctl -d /dev/video0 --set-fmt-video=width=1280,height=800,pixelformat=UYVY --stream-mmap --stream-count=121` - looking fps from webcam
 
+capture from web camare and write to file at segments by 10 sec (#BUG ? max-size-time=60000000000 does not work)
+```
+gst-launch-1.0 -v v4l2src device=/dev/video0 num-buffers=1000 ! videorate rate=1 max-duplication-time=300000000 \
+    ! 'video/x-raw,width=640,height=480,format=YUY2' \
+    ! videoconvert \
+    ! queue ! timeoverlay \
+    ! x264enc tune=zerolatency speed-preset=ultrafast name=encoder \
+    ! 'video/x-h264,width=640,height=480,stream-format=(string)byte-stream,alignment=(string)au,level=(string)3.2, profile=main, interlace-mode=(string)progressive, colorimetry=(string)bt709, chroma-site=(string)mpeg2' \
+    ! h264parse \
+    ! splitmuxsink "location=out/test_%02d.mp4" max-size-time=60000000000 muxer-factory=matroskamux muxer-properties="properties,streamable=true"
+```
+
 ## helpful links
 
 - https://dev.to/ethand91/gstreamer-c-stream-webcam-over-tcp-tutorial-lfh
@@ -43,3 +55,6 @@ Check the video from webcam: `gst-launch-1.0 v4l2src ! decodebin ! videoconvert 
 - https://htrd.su/blog/2020/02/11/gstreamer-cant-link-videoconvert-with-appsink-using-caps/
 - https://gstreamer.freedesktop.org/documentation/video/video-format.html?gi-language=c
 - https://gstreamer.freedesktop.org/documentation/x264/index.html?gi-language=c
+- https://gstreamer.freedesktop.org/documentation/tutorials/basic/time-management.html?gi-language=c
+- https://gstreamer.freedesktop.org/documentation/videorate/index.html?gi-language=c
+- https://gstreamer.freedesktop.org/documentation/multifile/splitmuxsink.html?gi-language=c
