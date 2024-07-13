@@ -58,3 +58,4 @@ gst-launch-1.0 -v v4l2src device=/dev/video0 num-buffers=1000 ! videorate rate=1
 - https://gstreamer.freedesktop.org/documentation/tutorials/basic/time-management.html?gi-language=c
 - https://gstreamer.freedesktop.org/documentation/videorate/index.html?gi-language=c
 - https://gstreamer.freedesktop.org/documentation/multifile/splitmuxsink.html?gi-language=c
+- https://gstreamer.freedesktop.org/documentation/tutorials/basic/hello-world.html?gi-language=c

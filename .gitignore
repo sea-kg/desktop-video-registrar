@@ -33,5 +33,5 @@
 
 # desktop-video-registrar
 /tmp
-/desktop-video-registrar
+/webcam-video-registrar
 /misc/out/*.mp4
