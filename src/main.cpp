@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <stdlib.h>
 
 #include <gst/gst.h>
 
@@ -14,8 +15,9 @@ void sigintHandler(int unused) {
 }
 
 int main(int argc, char *argv[]) {
-
     signal(SIGINT, sigintHandler);
+    setenv("GST_DEBUG", "*:WARN", true);
+
     std::cout << "Webcam Video Registrar" << std::endl;
 
     gst_init(&argc, &argv);
@@ -23,7 +25,7 @@ int main(int argc, char *argv[]) {
 
     std::string sPipelineCommand = ""
         // "playbin uri=https://gstreamer.freedesktop.org/data/media/sintel_trailer-480p.webm"
-        " v4l2src device=/dev/video0 num-buffers=1000"
+        " v4l2src 'device=/dev/video0 num-buffers=1000'"
         " ! videorate rate=1 "
         " ! 'video/x-raw,width=640,height=480,format=YUY2'"
         " ! videoconvert"
