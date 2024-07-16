@@ -9,7 +9,7 @@ rm -rf test.mp4
 
 gst-launch-1.0 v4l2src device=/dev/video0 num-buffers=1000 \
     ! videorate rate=1 max-duplication-time=300000000 \
-    ! 'video/x-raw,width=640,height=480,format=YUY2' \
+    ! capsfilter 'video/x-raw,width=640,height=480,format=YUY2' \
     ! videoconvert \
     ! queue ! timeoverlay \
     ! x264enc tune=zerolatency speed-preset=ultrafast name=encoder \

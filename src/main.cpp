@@ -14,56 +14,221 @@ void sigintHandler(int unused) {
     exit(0);
 }
 
+/* called when a new message is posted on the bus */
+// static void
+// cb_message (GstBus     *bus,
+//             GstMessage *message,
+//             gpointer    user_data)
+// {
+//   GstElement *pipeline = GST_ELEMENT (user_data);
+
+//   switch (GST_MESSAGE_TYPE (message)) {
+//     case GST_MESSAGE_ERROR:
+//       g_print ("we received an error!\n");
+//       g_main_loop_quit (loop);
+//       break;
+//     case GST_MESSAGE_EOS:
+//       g_print ("we reached EOS\n");
+//       g_main_loop_quit (loop);
+//       break;
+//     case GST_MESSAGE_APPLICATION:
+//     {
+//       if (gst_message_has_name (message, "ExPrerolled")) {
+//         /* it's our message */
+//         g_print ("we are all prerolled, do seek\n");
+//         gst_element_seek (pipeline,
+//             1.0, GST_FORMAT_TIME,
+//             GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE,
+//             GST_SEEK_TYPE_SET, 2 * GST_SECOND,
+//             GST_SEEK_TYPE_SET, 5 * GST_SECOND);
+
+//         gst_element_set_state (pipeline, GST_STATE_PLAYING);
+//       }
+//       break;
+//     }
+//     default:
+//       break;
+//   }
+// }
+
 int main(int argc, char *argv[]) {
     signal(SIGINT, sigintHandler);
     setenv("GST_DEBUG", "*:WARN", true);
 
     std::cout << "Webcam Video Registrar" << std::endl;
 
+    // Basicly ised code from here:
+    // https://stackoverflow.com/questions/59381362/v4l2src-simple-pipeline-to-c-application
+
+    // GstElement *pipeline;
+    GstBus *bus;
+    GstMessage *msg;
+
     gst_init(&argc, &argv);
-    GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
 
-    std::string sPipelineCommand = ""
-        // "playbin uri=https://gstreamer.freedesktop.org/data/media/sintel_trailer-480p.webm"
-        " v4l2src 'device=/dev/video0 num-buffers=1000'"
-        " ! videorate rate=1 "
-        " ! 'video/x-raw,width=640,height=480,format=YUY2'"
-        " ! videoconvert"
-        " ! queue ! timeoverlay"
-        " ! x264enc tune=zerolatency speed-preset=ultrafast name=encoder"
-        " ! 'video/x-h264,width=640,height=480,stream-format=(string)byte-stream,alignment=(string)au,level=(string)3.2, profile=main, interlace-mode=(string)progressive, colorimetry=(string)bt709, chroma-site=(string)mpeg2'"
-        " ! h264parse"
-        " ! splitmuxsink 'location=out/test_%02d.mp4' max-size-time=60000000000 muxer-factory=matroskamux 'muxer-properties=properties,streamable=true'"
-    ;
-    std::cout << "Build the pipeline gst-launch-1.0 " << sPipelineCommand << std::endl;
+    GstElement *source = gst_element_factory_make("v4l2src", "source");
+    // g_return_if_fail (source != NULL);
+    if (source == NULL) {
+        std::cerr << "Could not create 'v4l2src' element" << std::endl;
+        return -1;
+    }
+    g_object_set(
+        source,
+        "device", "/dev/video0", // Optional
+        "num-buffers", 1000,  // -1 - infinity, 1000 - frist 1000 frames
+        NULL
+    );
 
-    pipeline = gst_parse_launch(sPipelineCommand.c_str(), nullptr);
+    GstElement *videorate = gst_element_factory_make("videorate", "rate"); // without this elemrnt will be not work
+    if (videorate == NULL) {
+        std::cerr << "Could not create 'videorate' element" << std::endl;
+        return -1;
+    }
+    g_object_set(
+        G_OBJECT(videorate),
+        "max-rate", 30,
+        // "rate", 1, // Segmentation fault, wtf?, but default value is 1
+        NULL
+    );
 
-    std::cout << "Start playing" << std::endl;
-    gst_element_set_state (pipeline, GST_STATE_PLAYING);
+    GstElement *capsfilter = gst_element_factory_make("capsfilter","filter");
+    if (capsfilter == NULL) {
+        std::cerr << "Could not create 'capsfilter' element" << std::endl;
+        return -1;
+    }
+    GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "YUY2", "width", G_TYPE_INT, 640, "height", G_TYPE_INT, 480,  NULL);
+    g_object_set(G_OBJECT(capsfilter), "caps", caps, NULL);
 
-    // bus = gst_element_get_bus (pipeline);
-    // msg = gst_bus_timed_pop_filtered (
-    //     bus,
-    //     GST_CLOCK_TIME_NONE,
-    //     (GstMessageType)(GST_MESSAGE_ERROR | GST_MESSAGE_EOS)
-    // );
+    GstElement *videoconvert = gst_element_factory_make("videoconvert", "convert");
+     if (videoconvert == NULL) {
+        std::cerr << "Could not create 'videoconvert' element" << std::endl;
+        return -1;
+    }
 
-    // std::cout << "See next tutorial for proper error message handling/parsing " << std::endl;
-    // if (GST_MESSAGE_TYPE (msg) == GST_MESSAGE_ERROR) {
-    //     g_printerr ("An error occurred! Re-run with the GST_DEBUG=*:WARN "
-    //         "environment variable set for more details.\n");
-    // }
+    GstElement *queue = gst_element_factory_make("queue", "queue");
+    if (queue == NULL) {
+        std::cerr << "Could not create 'queue' element" << std::endl;
+        return -1;
+    }
 
-    std::cout << "Start main loop" << std::endl;
-    g_main_loop_run(loop);
+    GstElement *timeoverlay = gst_element_factory_make("timeoverlay", "timeoverlay");
+    if (timeoverlay == NULL) {
+        std::cerr << "Could not create 'timeoverlay' element" << std::endl;
+        return -1;
+    }
 
-    std::cout << "Free resources" << std::endl;
-    gst_message_unref (msg);
-    gst_object_unref (bus);
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (pipeline);
-    g_main_loop_unref(loop);
+    GstElement *x264enc = gst_element_factory_make("x264enc", "x264enc");
+    if (x264enc == NULL) {
+        std::cerr << "Could not create 'x264enc' element" << std::endl;
+        return -1;
+    }
+    g_object_set (
+        G_OBJECT(x264enc),
+        "tune", 0x00000004,  // zerolatency, https://gstreamer.freedesktop.org/documentation/x264/index.html?gi-language=c#GstX264EncTune
+        "name", "encoder",
+        "speed-preset", 1,  // ultrafast, https://gstreamer.freedesktop.org/documentation/x264/index.html?gi-language=c#GstX264EncPreset
+        NULL
+    );
+    GstElement *capsfilter_enc = gst_element_factory_make("capsfilter","capsfilter_enc");
+    if (capsfilter_enc == NULL) {
+        std::cerr << "Could not create 'capsfilter_enc' element" << std::endl;
+        return -1;
+    }
+    GstCaps *caps_enc = gst_caps_new_simple(
+        "video/x-h264",
+        "width", G_TYPE_INT, 640,
+        "height", G_TYPE_INT, 480,
+        "stream-format", G_TYPE_STRING, "byte-stream",
+        "alignment", G_TYPE_STRING, "au",
+        "level", G_TYPE_STRING, "3.2",
+        "profile", G_TYPE_STRING, "main",
+        "interlace-mode", G_TYPE_STRING, "progressive",
+        "colorimetry", G_TYPE_STRING, "bt709",
+        "chroma-site", G_TYPE_STRING, "mpeg2",
+        NULL
+    );
+    g_object_set(G_OBJECT(capsfilter_enc), "caps", caps_enc, NULL);
+
+    GstElement *h264parse = gst_element_factory_make("h264parse","h264parse");
+    if (h264parse == NULL) {
+        std::cerr << "Could not create 'h264parse' element" << std::endl;
+        return -1;
+    }
+
+    GstElement *splitmuxsink = gst_element_factory_make("splitmuxsink", "splitmuxsink");
+    g_object_set (
+        G_OBJECT(splitmuxsink),
+        "location", "out/test_%02d.mp4",
+        "muxer-factory", "matroskamux",
+        // "muxer-properties", "properties,streamable=true", // GLib-ERROR **: 18:57:11.600: ../../../glib/gmem.c:167: failed to allocate 60130373416 bytes
+        "max-size-time", 60000000000L,
+        NULL
+    );
+
+    pipeline = gst_pipeline_new("pipe");
+
+    gst_bin_add_many(
+        GST_BIN(pipeline),
+        source,
+        videorate,
+        capsfilter,
+        videoconvert,
+        queue,
+        timeoverlay,
+        x264enc,
+        capsfilter_enc,
+        h264parse,
+        splitmuxsink,
+        NULL
+    );
+    gst_element_link_many(
+        source,
+        videorate,
+        capsfilter,
+        videoconvert,
+        queue,
+        timeoverlay,
+        x264enc,
+        capsfilter_enc,
+        h264parse,
+        splitmuxsink,
+        NULL
+    );
+
+    gst_element_set_state(pipeline, GST_STATE_PLAYING);
+
+    bus = gst_element_get_bus(pipeline);
+    msg = gst_bus_timed_pop_filtered(bus, GST_CLOCK_TIME_NONE, (GstMessageType)(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+
+    // Parse message
+    if (msg != NULL) {
+        GError *err;
+        gchar *debug_info;
+
+        switch (GST_MESSAGE_TYPE (msg)) {
+            case GST_MESSAGE_ERROR:
+                gst_message_parse_error (msg, &err, &debug_info);
+                g_printerr ("Error received from element %s: %s\n", GST_OBJECT_NAME (msg->src), err->message);
+                g_printerr ("Debugging information: %s\n", debug_info ? debug_info : "none");
+                g_clear_error (&err);
+                g_free (debug_info);
+                break;
+            case GST_MESSAGE_EOS:
+                g_print ("End-Of-Stream reached.\n");
+                break;
+            default:
+                // We should not reach here because we only asked for ERRORs and EOS
+                g_printerr ("Unexpected message received.\n");
+                break;
+        }
+        gst_message_unref (msg);
+    }
+
+    // Free resources
+    gst_object_unref(bus);
+
+    gst_element_set_state(pipeline,GST_STATE_NULL);
+    gst_object_unref(pipeline);
 
     return 0;
 }
