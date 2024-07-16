@@ -14,43 +14,6 @@ void sigintHandler(int unused) {
     exit(0);
 }
 
-/* called when a new message is posted on the bus */
-// static void
-// cb_message (GstBus     *bus,
-//             GstMessage *message,
-//             gpointer    user_data)
-// {
-//   GstElement *pipeline = GST_ELEMENT (user_data);
-
-//   switch (GST_MESSAGE_TYPE (message)) {
-//     case GST_MESSAGE_ERROR:
-//       g_print ("we received an error!\n");
-//       g_main_loop_quit (loop);
-//       break;
-//     case GST_MESSAGE_EOS:
-//       g_print ("we reached EOS\n");
-//       g_main_loop_quit (loop);
-//       break;
-//     case GST_MESSAGE_APPLICATION:
-//     {
-//       if (gst_message_has_name (message, "ExPrerolled")) {
-//         /* it's our message */
-//         g_print ("we are all prerolled, do seek\n");
-//         gst_element_seek (pipeline,
-//             1.0, GST_FORMAT_TIME,
-//             GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE,
-//             GST_SEEK_TYPE_SET, 2 * GST_SECOND,
-//             GST_SEEK_TYPE_SET, 5 * GST_SECOND);
-
-//         gst_element_set_state (pipeline, GST_STATE_PLAYING);
-//       }
-//       break;
-//     }
-//     default:
-//       break;
-//   }
-// }
-
 int main(int argc, char *argv[]) {
     signal(SIGINT, sigintHandler);
     setenv("GST_DEBUG", "*:WARN", true);
