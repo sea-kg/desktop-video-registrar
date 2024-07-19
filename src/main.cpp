@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, sigintHandler);
     setenv("GST_DEBUG", "*:WARN", true);
 
-    std::cout << "Webcam Video Registrar" << std::endl;
+    std::cout << "Welcome to Video Registrar" << std::endl;
 
     // Basicly ised code from here:
     // https://stackoverflow.com/questions/59381362/v4l2src-simple-pipeline-to-c-application
@@ -79,6 +79,14 @@ int main(int argc, char *argv[]) {
         std::cerr << "Could not create 'timeoverlay' element" << std::endl;
         return -1;
     }
+    GDateTime *dt = g_date_time_new_now_local();
+    g_object_set(
+        G_OBJECT(timeoverlay),
+        "show-times-as-dates", true,
+        "datetime-format", "%Y-%m-%d_%H:%M:%S",
+        "datetime-epoch", dt,
+        NULL
+    );
 
     GstElement *x264enc = gst_element_factory_make("x264enc", "x264enc");
     if (x264enc == NULL) {
@@ -150,20 +158,6 @@ int main(int argc, char *argv[]) {
     gst_element_link(x264enc, capsfilter_enc);
     gst_element_link(capsfilter_enc, h264parse);
     gst_element_link(h264parse, splitmuxsink);
-
-    // gst_element_link_many(
-    //     source,
-    //     videorate,
-    //     capsfilter,
-    //     videoconvert,
-    //     queue,
-    //     timeoverlay,
-    //     x264enc,
-    //     capsfilter_enc,
-    //     h264parse,
-    //     splitmuxsink,
-    //     NULL
-    // );
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 
