@@ -14,10 +14,10 @@ check_ret() {
     fi
 }
 
-cmake -H. -B./tmp/release -DCMAKE_BUILD_TYPE=Release
+cmake -H. -B./tmp/linux-x64-release -DCMAKE_BUILD_TYPE=Release
 check_ret $? "configure"
 
-cmake --build ./tmp/release --config Release
+cmake --build ./tmp/linux-x64-release --config Release
 check_ret $? "build"
 
 # cd ./tmp/release && ctest --output-on-failure

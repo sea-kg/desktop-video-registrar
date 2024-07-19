@@ -1,4 +1,4 @@
-# webcam-video-registrar
+# video-registrar
 
 
 ## Install requirements
@@ -60,3 +60,16 @@ gst-launch-1.0 -v v4l2src device=/dev/video0 num-buffers=1000 ! videorate rate=1
 - https://gstreamer.freedesktop.org/documentation/multifile/splitmuxsink.html?gi-language=c
 - https://gstreamer.freedesktop.org/documentation/tutorials/basic/hello-world.html?gi-language=c
 - https://stackoverflow.com/questions/24633281/gstreamer-pipeline-in-c
+
+
+ # Build for ARM
+
+Install requirements
+```
+$ sudo apt install gcc-9-aarch64-linux-gnu g++-9-aarch64-linux-gnu
+```
+
+Run
+```
+$ qemu-aarch64 video-register
+```

@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.15.3)
 
-set(PROJECT_NAME webcam-video-registrar)
+
+set(CMAKE_SYSTEM_NAME Linux)
+# set(CMAKE_SYSTEM_PROCESSOR aarch64)
+# TODO 
+# # specify the cross compiler
+# set(CMAKE_C_COMPILER "aarch64-linux-gnu-gcc-9")
+# set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++-9")
+
+
+set(PROJECT_NAME video-registrar)
 
 project(${PROJECT_NAME})
 
