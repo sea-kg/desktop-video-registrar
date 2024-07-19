@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
-
 #include <gst/gst.h>
+#include <gst_elements.h>
 
 GstElement *pipeline = nullptr;
 GstBus *bus = nullptr;
@@ -28,6 +28,10 @@ int main(int argc, char *argv[]) {
     GstMessage *msg;
 
     gst_init(&argc, &argv);
+
+
+    // std::vector<IVideoRegistrarGstElement *> vPipeline;
+    // vPipeline.push_back(new VideoRegistrarGstElementTimeoverlay());
 
     GstElement *source = gst_element_factory_make("v4l2src", "source");
     // g_return_if_fail (source != NULL);
@@ -73,20 +77,9 @@ int main(int argc, char *argv[]) {
         std::cerr << "Could not create 'queue' element" << std::endl;
         return -1;
     }
+    VideoRegistrarGstElementTimeoverlay *pTimeoverlay = new VideoRegistrarGstElementTimeoverlay();
 
-    GstElement *timeoverlay = gst_element_factory_make("timeoverlay", "timeoverlay");
-    if (timeoverlay == NULL) {
-        std::cerr << "Could not create 'timeoverlay' element" << std::endl;
-        return -1;
-    }
-    GDateTime *dt = g_date_time_new_now_local();
-    g_object_set(
-        G_OBJECT(timeoverlay),
-        "show-times-as-dates", true,
-        "datetime-format", "%Y-%m-%d_%H:%M:%S",
-        "datetime-epoch", dt,
-        NULL
-    );
+    GstElement *timeoverlay = pTimeoverlay->createElement();
 
     GstElement *x264enc = gst_element_factory_make("x264enc", "x264enc");
     if (x264enc == NULL) {

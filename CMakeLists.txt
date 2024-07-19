@@ -20,13 +20,12 @@ set(EXECUTABLE_OUTPUT_PATH ${${PROJECT_NAME}_SOURCE_DIR})
 
 # include header dirs
 list (APPEND WSJCPP_INCLUDE_DIRS "src")
-list (APPEND WSJCPP_INCLUDE_DIRS "src/app")
-list (APPEND WSJCPP_INCLUDE_DIRS "src/ArgumentsProcessors")
-list (APPEND WSJCPP_INCLUDE_DIRS "src/Downloaders")
-
+list (APPEND WSJCPP_INCLUDE_DIRS "src/gst_elements")
 
 # source code
 list (APPEND WSJCPP_SOURCES "src/main.cpp")
+list (APPEND WSJCPP_SOURCES "src/gst_elements/videoregistrar_gst_element_timeoverlay.cpp")
+
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(gstreamer REQUIRED IMPORTED_TARGET gstreamer-1.0>=1.4)
