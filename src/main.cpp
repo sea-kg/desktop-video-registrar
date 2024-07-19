@@ -130,33 +130,40 @@ int main(int argc, char *argv[]) {
 
     pipeline = gst_pipeline_new("pipe");
 
-    gst_bin_add_many(
-        GST_BIN(pipeline),
-        source,
-        videorate,
-        capsfilter,
-        videoconvert,
-        queue,
-        timeoverlay,
-        x264enc,
-        capsfilter_enc,
-        h264parse,
-        splitmuxsink,
-        NULL
-    );
-    gst_element_link_many(
-        source,
-        videorate,
-        capsfilter,
-        videoconvert,
-        queue,
-        timeoverlay,
-        x264enc,
-        capsfilter_enc,
-        h264parse,
-        splitmuxsink,
-        NULL
-    );
+    gst_bin_add(GST_BIN(pipeline), source);
+    gst_bin_add(GST_BIN(pipeline), videorate);
+    gst_bin_add(GST_BIN(pipeline), capsfilter);
+    gst_bin_add(GST_BIN(pipeline), videoconvert);
+    gst_bin_add(GST_BIN(pipeline), queue);
+    gst_bin_add(GST_BIN(pipeline), timeoverlay);
+    gst_bin_add(GST_BIN(pipeline), x264enc);
+    gst_bin_add(GST_BIN(pipeline), capsfilter_enc);
+    gst_bin_add(GST_BIN(pipeline), h264parse);
+    gst_bin_add(GST_BIN(pipeline), splitmuxsink);
+
+    gst_element_link(source, videorate);
+    gst_element_link(videorate, capsfilter);
+    gst_element_link(capsfilter, videoconvert);
+    gst_element_link(videoconvert, queue);
+    gst_element_link(queue, timeoverlay);
+    gst_element_link(timeoverlay, x264enc);
+    gst_element_link(x264enc, capsfilter_enc);
+    gst_element_link(capsfilter_enc, h264parse);
+    gst_element_link(h264parse, splitmuxsink);
+
+    // gst_element_link_many(
+    //     source,
+    //     videorate,
+    //     capsfilter,
+    //     videoconvert,
+    //     queue,
+    //     timeoverlay,
+    //     x264enc,
+    //     capsfilter_enc,
+    //     h264parse,
+    //     splitmuxsink,
+    //     NULL
+    // );
 
     gst_element_set_state(pipeline, GST_STATE_PLAYING);
 
