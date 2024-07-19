@@ -36,3 +36,6 @@
 /webcam-video-registrar
 /misc/out/*.mp4
 /out
+
+# wsjcpp
+.wsjcpp

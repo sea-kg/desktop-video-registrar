@@ -1,4 +1,4 @@
-# desktop-video-registrar
+# webcam-video-registrar
 
 
 ## Install requirements
